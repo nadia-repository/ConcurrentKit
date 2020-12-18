@@ -1,4 +1,4 @@
-#include "ReentrantLock.h"
+#include "reentrantLock.h"
 
 static int compareAndSetState(int *this,int expect,int update);
 static void fairLock(LOCK);
@@ -11,6 +11,8 @@ static int hasQueuedPredecessors(LOCK);
 static int acquireQueued(LOCK,NODE,ACQUIRES);
 static int shouldParkAfterFailedAcquire(LOCK_NODE *pred, LOCK_NODE *node);
 static int parkAndCheckInterrupt();
+static LOCK_NODE *addWaiter(LOCK_NODE *mode);
+static void selfInterrupt(void);
 
 
 void lock(LOCK){
@@ -39,7 +41,7 @@ static void fairLock(LOCK){
 
 static void nonfairLock(LOCK){
     if(compareAndSetState(&lock->cas,0,1)){
-        lock->exclusive_owner_thread = getpid();
+        lock->exclusive_owner_thread = currentThread();
     }else{
         acquire(lock,1);
     }
@@ -47,8 +49,8 @@ static void nonfairLock(LOCK){
 
 static void acquire(LOCK,ACQUIRES){
     if( tryAcquire(lock,acquires) == 0 &&
-        ){
-
+        acquireQueued(lock,addWaiter(NULL),acquires)){
+            selfInterrupt();
     }
 }
 
@@ -61,12 +63,12 @@ static int tryAcquire(LOCK,ACQUIRES){
 }
 
 static int fairTryAcquire(LOCK,ACQUIRES){
-    pid_t current_thread = getpid();
+    pid_t current_thread =currentThread();
     if(lock->state == 0){ //当前锁没有枷锁
         //再次检查是否有其他线程抢占锁
         if(hasQueuedPredecessors(lock) == 0 && //公平锁需要考虑等待队列中是否有其他等待的node
             compareAndSetState(&lock->cas,0,acquires)){
-                lock->exclusive_owner_thread = getpid();
+                lock->exclusive_owner_thread = currentThread();
                 return 1;
         }
     }else if (current_thread == lock->exclusive_owner_thread){ //检查锁是否为当前线程持有
@@ -77,11 +79,11 @@ static int fairTryAcquire(LOCK,ACQUIRES){
 }
 
 static int nonfairTryAcquire(LOCK,ACQUIRES){
-    pid_t current_thread = getpid();
+    pid_t current_thread = currentThread();
     if(lock->state == 0){ //当前锁没有枷锁
         //再次检查是否有其他线程抢占锁
         if(compareAndSetState(&lock->cas,0,acquires)){
-            lock->exclusive_owner_thread = getpid();
+            lock->exclusive_owner_thread = currentThread();
             return 1;
         }
     }else if (current_thread == lock->exclusive_owner_thread){ //检查锁是否为当前线程持有
@@ -97,7 +99,7 @@ static int hasQueuedPredecessors(LOCK){
     LOCK_NODE *s;
     //等待队列不为空，并且等待队列只有一个node，或者第一个等待node不是当前线程时
     return h != t && 
-        ((s = h->next) == NULL || *(h->thread) != getpid());
+        ((s = h->next) == NULL || *(h->thread) != currentThread(););
 }
 
 static int acquireQueued(LOCK,NODE,ACQUIRES){
@@ -155,4 +157,12 @@ static int shouldParkAfterFailedAcquire(LOCK_NODE *pred, LOCK_NODE *node){
 static int parkAndCheckInterrupt(){
 
     return 0;
+}
+
+static LOCK_NODE *addWaiter(LOCK_NODE *mode){
+
+}
+
+static void selfInterrupt(void){
+
 }

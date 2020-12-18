@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "thread.h"
 
 #define LOCK REENTRANT_LOCK *lock
 #define NODE LOCK_NODE *node
@@ -29,7 +30,7 @@ enum node_status {
 typedef struct lock_node_struct{
     struct lock_node_struct *prev;
     struct lock_node_struct *next;
-    pid_t *thread;
+    THREAD *thread;
     enum node_status wait_status;
     struct lock_node_struct *(* predecessor)(NODE);
 } LOCK_NODE;
@@ -37,7 +38,7 @@ typedef struct lock_node_struct{
 typedef struct reentrant_lock_struct{
     int cas;
     int is_fair;
-    pid_t exclusive_owner_thread;
+    THREAD *exclusive_owner_thread;
     int state;
     LOCK_NODE *tail;
     LOCK_NODE *head;
