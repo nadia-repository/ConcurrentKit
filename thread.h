@@ -1,15 +1,24 @@
 #include <pthread.h>
 
+enum clear_interrupted {NOT_RESET = 0,RESET = 1};
+
 typedef struct thread_struct{
-    int pid;
+    int tid;
     char *name;
     int priority;
-    int is_self;
     void (* target)(void *arg);
-
+    int is_interrupted;
     struct thread_struct *next;
 } THREAD;
+
+THREAD *createThread(void *target);
 
 THREAD *currentThread(void);
 
 void *runThread(THREAD *thread);
+
+void parkThread(THREAD *thread);
+
+int isInterrupted(THREAD *thread, enum clear_interrupted flag);
+
+void interruptThread(THREAD *thread);

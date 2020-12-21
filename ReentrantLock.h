@@ -30,6 +30,7 @@ enum node_status {
 typedef struct lock_node_struct{
     struct lock_node_struct *prev;
     struct lock_node_struct *next;
+    struct lock_node_struct *next_waiter;
     THREAD *thread;
     enum node_status wait_status;
     struct lock_node_struct *(* predecessor)(NODE);
