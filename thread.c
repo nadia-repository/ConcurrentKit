@@ -1,6 +1,7 @@
 #include "thread.h"
 
 THREAD *all_threads = NULL;
+pthread_key_t self_key;
 
 static int getNextTid();
 
@@ -10,19 +11,16 @@ THREAD *createThread(void *target){
 }
 
 THREAD *currentThread(void){
-    THREAD *t = all_threads;
-    while(t != NULL){
-        if(gettid() == all_threads->tid){
-            return t;
-        }else{
-            t = t->next;
-        }
-    }
+    //从TLS中获取当前Thread指针
+    return (THREAD *)pthread_getspecific(self_key);
 }
 
 void *runThread(THREAD *thread){
     if(currentThread()->tid == gettid()){
         //执行run方法时不为当前线程本身，则执行
+
+        //将thread存储至TLS，currentThread时获取
+        pthread_setspecific(self_key,thread);
         
     }
 }
