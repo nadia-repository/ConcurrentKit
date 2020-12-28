@@ -9,15 +9,17 @@ typedef struct linked_blocking_queue_struct{
     
     int (* size)(LBQ);
     int (* isEmpty)(LBQ);
+
+    int (* add)(LBQ,void *value);
+    void *(* take)(LBQ);
+
 } LINKED_BLOCKING_QUEUE;
 
 LINKED_BLOCKING_QUEUE *initLinkedBlockingQueue(int size);
 
-int add(LBQ,void *value);
+int addBlockQueue(LBQ,void *value);
 
-
-
-
+void *takeBlockQueue(LBQ);
 
 
 

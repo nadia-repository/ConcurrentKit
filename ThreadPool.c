@@ -1,4 +1,4 @@
-#include "thread_pool.h"
+#include "ThreadPool.h"
 
 static void excute(POOL,void *task);
 static int addWorker(POOL,void *task,int isCore);

@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "thread.h"
+#include "Thread.h"
 
 #define LOCK REENTRANT_LOCK *lock
 #define NODE LOCK_NODE *node

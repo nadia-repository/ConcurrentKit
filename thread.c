@@ -1,4 +1,4 @@
-#include "thread.h"
+#include "Thread.h"
 
 THREAD *all_threads = NULL;
 pthread_key_t self_key;

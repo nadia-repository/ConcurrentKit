@@ -1,4 +1,4 @@
-#include "atomic.h"
+#include "Atomic.h"
 
 static void getAndIncrementInt(struct atomic_struct *atomic);
 static void getAndDecrementInt(struct atomic_struct *atomic);
@@ -9,6 +9,7 @@ ATOMIC *atomicInt(int value){
     ATOMIC *ai = malloc(sizeof(ATOMIC));
     ai->value = i;
     ai->getAndIncrement = &getAndIncrementInt;
+    ai->getAndDecrement = &getAndDecrementInt;
     return ai;
 }
 
