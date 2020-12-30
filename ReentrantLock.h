@@ -45,7 +45,7 @@ typedef struct reentrant_lock_struct{
     LOCK_NODE *head;
 } REENTRANT_LOCK;
 
-
+REENTRANT_LOCK *createReentrantLock();
 
 void lock(LOCK);
 
