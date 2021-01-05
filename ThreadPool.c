@@ -2,9 +2,13 @@
 
 static void excute(POOL,void *task);
 static int addWorker(POOL,void *task,int isCore);
-static WORKER *newWorder(void *firstTask);
+static WORKER *newWorder(POOL,void *firstTask);
 static void runWorker(void *argp);
 static void addWorkerFailed(POOL,WORKER *w);
+static int isRunning(POOL);
+static void reject(void *task);
+static int remove(void *task);
+
 
 THREAD_POOL *newFixedThreadPool(int nThreads, int tasks){
     THREAD_POOL *pool = malloc(sizeof(THREAD_POOL));
@@ -18,12 +22,14 @@ THREAD_POOL *newFixedThreadPool(int nThreads, int tasks){
     return pool;
 }
 
-static WORKER *newWorder(void *firstTask){
+static WORKER *newWorder(POOL,void *firstTask){
     WORKER *w = malloc(sizeof(WORKER));
     w->state = -1;
     w->firstTask = firstTask;
-    w->thread = createThread(&runWorker,(void *)w); //WORKER中的线程成员可以引用自己
     w->lock = createReentrantLock();
+    w->pool = pool;
+    w->thread = createThread(&runWorker,(void *)w); //WORKER中的线程成员可以引用自己
+    return w;
 }
 
 void *submit(POOL,void *task){
@@ -40,9 +46,20 @@ void shutdown(POOL){
 void excute(POOL,void *task){
     int workerCount = *(int *)(pool->workerCount->value);
     if(workerCount < pool->corePoolSize){
-
+        if(addWorker(pool,task,1)){
+            return;
+        }
     }
-
+    if(isRunning(pool) && QUEUE_ADD(pool->queue,task)){
+        workerCount = *(int *)(pool->workerCount->value);
+        if(!isRunning(pool) && remove(task)){
+            reject(task);
+        }else if(workerCount == 0){
+            addWorker(pool,NULL,0);
+        }
+    }else if(!addWorker(pool,task,0)){
+        reject(task);
+    }
 }
 
 static int addWorker(POOL,void *task,int isCore){
@@ -75,7 +92,7 @@ static int addWorker(POOL,void *task,int isCore){
     int workerStarted = 0;
     int workerAdded = 0;
 
-    WORKER *w = newWorder(task);
+    WORKER *w = newWorder(pool,task);
     THREAD *t = w->thread;
     if(t != NULL){
         lock(pool->mainLoc);
@@ -97,6 +114,7 @@ static int addWorker(POOL,void *task,int isCore){
         addWorkerFailed(pool,w);
     }
     unlock(pool->mainLoc);
+    return workerStarted;
 }
 
 static void addWorkerFailed(POOL,WORKER *w){
@@ -114,7 +132,7 @@ static void runWorker(void *argp){
     void *task = w->firstTask;
     unlock(w->lock);
     int completedAbruptly = 1;
-    while( task != NULL || (task = )){
+    while( task != NULL || (task = QUEUE_TAKE(w->pool->queue))){
 
 
 

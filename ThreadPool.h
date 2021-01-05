@@ -40,6 +40,7 @@ typedef struct worker_struct{
     void (*firstTask)();
     THREAD *thread;
     REENTRANT_LOCK *lock;
+    THREAD_POOL *pool;
 } WORKER;
 
 THREAD_POOL *newFixedThreadPool(int nThreads, int tasks);
